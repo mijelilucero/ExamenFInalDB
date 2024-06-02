@@ -195,6 +195,7 @@ namespace ExamenFInalDB.Data
 
 
 
+
         //UPDATE: Actualizar un registro
         public bool Actualizar(Destino dest)
         {
