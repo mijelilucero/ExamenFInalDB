@@ -32,12 +32,10 @@ namespace ExamenFInalDB
         };
 
 
-
         public FormCRUD()
         {
             InitializeComponent();
         }
-
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -48,7 +46,7 @@ namespace ExamenFInalDB
             }
             else
             {
-                MessageBox.Show("Algo fallo al intentar hacer la conexion con la base de datos.");
+                MessageBox.Show("Algo falló al intentar establecer la conexion con la base de datos.");
             }
 
             comboBoxTipoDestino.Items.AddRange(tiposDestinos);
@@ -56,7 +54,7 @@ namespace ExamenFInalDB
         }
 
 
-
+        //CREAR UN REGISTRO NUEVO
         private void buttonCrearRegistro_Click(object sender, EventArgs e)
         {
             if (validarDatosIngresados())
@@ -64,8 +62,8 @@ namespace ExamenFInalDB
                 dest.Nombre = textBoxNombre.Text;
                 dest.Pais = textBoxPais.Text;
                 dest.TipoDestino = comboBoxTipoDestino.Text;
-                dest.FechaLlegada = dateTimePickerLlegada.Value;
-                dest.FechaSalida = dateTimePickerSalida.Value;
+                dest.FechaLlegada = dateTimePickerLlegada.Value.Date;
+                dest.FechaSalida = dateTimePickerSalida.Value.Date;
                 dest.PresupuestoPromedio = decimal.Parse(textBoxPresupuestoProm.Text);
                 dest.Puntuacion = Int32.Parse(numericUpDownPuntuacion.Text);
                 dest.Favorito = checkBoxFavorito.Checked;
@@ -94,7 +92,7 @@ namespace ExamenFInalDB
         }
 
 
-
+        //MOSTRAR TODOS LOS REGISTROS
         private void buttonCargarTodosRegistros_Click(object sender, EventArgs e)
         {
             todos_losRegistros = conexionDestinos.ObtenerTodosLosRegistros();
@@ -107,7 +105,15 @@ namespace ExamenFInalDB
         }
 
 
+        //MOSTRAR SOLO REGISTROS FAVORITOS
+        private void buttonFiltrarFavoritos_Click(object sender, EventArgs e)
+        {
+            registros_favoritos = conexionDestinos.ObtenerRegistosFavoritos();
+            dataGridViewRegistros.DataSource = registros_favoritos;
+        }
 
+
+        //BUSCAR UN REGISTRO POR ID
         private void buttonBuscarPorID_Click(object sender, EventArgs e)
         {
             if (textBoxBuscarPorId.Text != "")
@@ -159,19 +165,11 @@ namespace ExamenFInalDB
             DataRow fila = conexionDestinos.BuscarRegistroporID(id);
             DataTable dataRegistro = fila.Table.Clone();
             dataRegistro.Rows.Add(fila.ItemArray);
-
-            if (dataRegistro.Rows.Count > 0)
-            {
-                dataGridViewRegistros.DataSource = dataRegistro;
-            }
-            else
-            {
-                dataGridViewRegistros.DataSource = null;
-            }
+            dataGridViewRegistros.DataSource = dataRegistro;
         }
 
 
-
+        //SELECCIONAR UN REGISTRO EN EL DATAGRIDIEW
         private void dataGridViewRegistros_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -207,6 +205,166 @@ namespace ExamenFInalDB
             }
         }
 
+
+        //ACTUALIZAR UN REGISTRO
+        private void buttonActualizar_Click(object sender, EventArgs e)
+        {
+            if (textBoxID.Text != "")
+            {
+                if (validarDatosIngresados())
+                {
+                    dest.ID = Convert.ToInt32(textBoxID.Text);
+                    dest.Nombre = textBoxNombre.Text;
+                    dest.Pais = textBoxPais.Text;
+                    dest.TipoDestino = comboBoxTipoDestino.Text;
+                    dest.FechaLlegada = dateTimePickerLlegada.Value.Date;
+                    dest.FechaSalida = dateTimePickerSalida.Value.Date;
+                    dest.PresupuestoPromedio = decimal.Parse(textBoxPresupuestoProm.Text);
+                    dest.Puntuacion = Int32.Parse(numericUpDownPuntuacion.Text);
+                    dest.Favorito = checkBoxFavorito.Checked;
+
+                    DialogResult resultado = MessageBox.Show("Estas seguro de que deseas actualizar este registro en la base de datos?", "Confirmacion", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                    if (resultado == DialogResult.Yes)
+                    {
+                        if (conexionDestinos.Actualizar(dest))
+                        {
+                            MessageBox.Show("El registro fue actualizado exitosamente.");
+                            dataGridViewRegistros.DataSource = conexionDestinos.ObtenerTodosLosRegistros();
+                            cursor1.actual = -1;
+                            ActualizarTotalRegistros();
+                            textBoxID.Text = "";
+                            textBoxNombre.Text = "";
+                            textBoxPais.Text = "";
+                            comboBoxTipoDestino.Text = "";
+                            dateTimePickerLlegada.Value = DateTime.Now;
+                            dateTimePickerSalida.Value = DateTime.Now;
+                            textBoxPresupuestoProm.Text = "";
+                            numericUpDownPuntuacion.Text = "";
+                            checkBoxFavorito.Checked = false;
+                        }
+                        else
+                        {
+                            MessageBox.Show("El registro no fue actualizado dentro de la base de datos.");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Modificaciones no realizadas.");
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Debes dar clic en un registro para poder actualizarlo.");
+            }
+        }
+
+
+        //ELIMINAR UN REGISTRO
+        private void buttonEliminarRegistro_Click(object sender, EventArgs e)
+        {
+            if (textBoxID.Text != "")
+            {
+                int id = Int32.Parse(textBoxID.Text);
+
+                DialogResult resultado = MessageBox.Show("Estas seguro de que deseas eliminar permanentemente este registro en la base de datos?", "Confirmacion", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (resultado == DialogResult.Yes)
+                {
+                    if (conexionDestinos.Eliminar(id))
+                    {
+                        MessageBox.Show("El registro fue eliminado exitosamente.");
+                        dataGridViewRegistros.DataSource = conexionDestinos.ObtenerTodosLosRegistros();
+                        cursor1.actual = -1;
+                        ActualizarTotalRegistros();
+                        textBoxID.Text = "";
+                        textBoxNombre.Text = "";
+                        textBoxPais.Text = "";
+                        comboBoxTipoDestino.Text = "";
+                        dateTimePickerLlegada.Value = DateTime.Now;
+                        dateTimePickerSalida.Value = DateTime.Now;
+                        textBoxPresupuestoProm.Text = "";
+                        numericUpDownPuntuacion.Text = "";
+                        checkBoxFavorito.Checked = false;
+                    }
+                    else
+                    {
+                        MessageBox.Show("El registro no fue eliminado dentro de la base de datos.");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Modificaciones no realizadas.");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Debes dar clic en un registro para poder eliminarlo.");
+            }
+        }
+
+
+        //NAVEGACION DE REGISTROS
+        private void buttonAnterior_Click(object sender, EventArgs e)
+        {
+            if (cursor1.actual > 0)
+            {
+                cursor1.actual--;
+                MostrarRegistroActual();
+            }
+            else
+            {
+                MessageBox.Show("Fin de los registros.");
+            }
+        }
+
+        private void buttonSiguiente_Click(object sender, EventArgs e)
+        {
+            if (cursor1.actual < cursor1.totalRegistros - 1)
+            {
+                cursor1.actual++;
+                MostrarRegistroActual();
+            }
+            else
+            {
+                MessageBox.Show("Fin de los registros.");
+            }
+        }
+
+
+            private void MostrarRegistroActual()
+            {
+                if (cursor1.actual >= 0 && cursor1.actual < cursor1.totalRegistros)
+                {
+                    Destino dest = todos_losRegistros[cursor1.actual];
+
+                    textBoxID.Text = dest.ID.ToString();
+                    textBoxNombre.Text = dest.Nombre.ToString();
+                    textBoxPais.Text = dest.Pais.ToString();
+                    comboBoxTipoDestino.Text = dest.TipoDestino.ToString();
+                    dateTimePickerLlegada.Text = dest.FechaLlegada.ToString();
+                    dateTimePickerSalida.Text = dest.FechaSalida.ToString();
+                    textBoxPresupuestoProm.Text = dest.PresupuestoPromedio.ToString();
+                    numericUpDownPuntuacion.Text = dest.Puntuacion.ToString();
+                    checkBoxFavorito.Checked = dest.Favorito;
+                }
+            }
+        
+        
+        //OBTENER TOTAL DE REGISTROS
+        public void ActualizarTotalRegistros()
+        {
+            todos_losRegistros = conexionDestinos.ObtenerTodosLosRegistros();
+
+            if (todos_losRegistros.Count > -1)
+            {
+                cursor1.totalRegistros = todos_losRegistros.Count;
+            }
+        }
+
+
+        //VALIDAR LOS DATOS INGRESADOS
         private bool validarDatosIngresados()
         {
             if (string.IsNullOrWhiteSpace(textBoxNombre.Text) || string.IsNullOrWhiteSpace(textBoxPais.Text) || string.IsNullOrWhiteSpace(comboBoxTipoDestino.Text) ||
@@ -238,7 +396,7 @@ namespace ExamenFInalDB
             }
 
 
-            if (!int.TryParse(numericUpDownPuntuacion.Text, out int puntuacion) && (puntuacion >= 0 && puntuacion <= 10))
+            if (!int.TryParse(numericUpDownPuntuacion.Text, out int puntuacion) && (puntuacion < 0 && puntuacion > 10))
             {
                 MessageBox.Show("La puntuación debe ser un valor entero entre 0 y 10.", "Error de validación", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
@@ -247,161 +405,5 @@ namespace ExamenFInalDB
             return true;
         }
 
-        private void buttonActualizar_Click(object sender, EventArgs e)
-        {
-            if (textBoxID.Text != "") 
-            {
-                if (validarDatosIngresados())
-                {
-                    dest.ID = Convert.ToInt32(textBoxID.Text);
-                    dest.Nombre = textBoxNombre.Text;
-                    dest.Pais = textBoxPais.Text;
-                    dest.TipoDestino = comboBoxTipoDestino.Text;
-                    dest.FechaLlegada = dateTimePickerLlegada.Value;
-                    dest.FechaSalida = dateTimePickerSalida.Value;
-                    dest.PresupuestoPromedio = decimal.Parse(textBoxPresupuestoProm.Text);
-                    dest.Puntuacion = Int32.Parse(numericUpDownPuntuacion.Text);
-                    dest.Favorito = checkBoxFavorito.Checked;
-
-                    DialogResult resultado = MessageBox.Show("Estas seguro de que deseas actualizar este registro en la base de datos?", "Confirmacion", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                    if (resultado == DialogResult.Yes)
-                    {
-                        if (conexionDestinos.Actualizar(dest))
-                        {
-                            MessageBox.Show("El registro fue actualizado exitosamente.");
-                            dataGridViewRegistros.DataSource = conexionDestinos.ObtenerTodosLosRegistros();
-                            ActualizarTotalRegistros();
-                            textBoxID.Text = "";
-                            textBoxNombre.Text = "";
-                            textBoxPais.Text = "";
-                            comboBoxTipoDestino.Text = "";
-                            dateTimePickerLlegada.Value = DateTime.Now;
-                            dateTimePickerSalida.Value = DateTime.Now;
-                            textBoxPresupuestoProm.Text = "";
-                            numericUpDownPuntuacion.Text = "";
-                            checkBoxFavorito.Checked = false;
-                        }
-                        else
-                        {
-                            MessageBox.Show("El registro no fue actualizado dentro de la base de datos.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Modificaciones no realizadas.");
-                    }
-                }
-            }
-            else
-            {
-                MessageBox.Show("Debes dar clic en un registro para poder actualizarlo.");
-            }
-        }
-
-        private void buttonEliminarRegistro_Click(object sender, EventArgs e)
-        {
-            if (textBoxID.Text != "")
-            {
-                int id = Int32.Parse(textBoxID.Text);
-
-                DialogResult resultado = MessageBox.Show("Estas seguro de que deseas eliminar permanentemente este registro en la base de datos?", "Confirmacion", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                if (resultado == DialogResult.Yes)
-                {
-                    if (conexionDestinos.Eliminar(id))
-                    {
-                        MessageBox.Show("El registro fue eliminado exitosamente.");
-                        dataGridViewRegistros.DataSource = conexionDestinos.ObtenerTodosLosRegistros();
-                        ActualizarTotalRegistros();
-                        textBoxID.Text = "";
-                        textBoxNombre.Text = "";
-                        textBoxPais.Text = "";
-                        comboBoxTipoDestino.Text = "";
-                        dateTimePickerLlegada.Value = DateTime.Now;
-                        dateTimePickerSalida.Value = DateTime.Now;
-                        textBoxPresupuestoProm.Text = "";
-                        numericUpDownPuntuacion.Text = "";
-                        checkBoxFavorito.Checked = false;
-                    }
-                    else
-                    {
-                        MessageBox.Show("El registro no fue eliminado dentro de la base de datos.");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Modificaciones no realizadas.");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Debes dar clic en un registro para poder eliminarlo.");
-            }
-        }
-
-        private void buttonFiltrarFavoritos_Click(object sender, EventArgs e)
-        {
-            registros_favoritos = conexionDestinos.ObtenerRegistosFavoritos();
-            dataGridViewRegistros.DataSource = registros_favoritos;
-        }
-
-        
-        //NAVEGACION DE REGISTROS
-        private void MostrarRegistroActual()
-        {
-            if (cursor1.actual >= 0 && cursor1.actual < cursor1.totalRegistros)
-            {
-                Destino dest = todos_losRegistros[cursor1.actual];
-                bool esFavorito;
-
-                textBoxID.Text = dest.ID.ToString();
-                textBoxNombre.Text = dest.Nombre.ToString();
-                textBoxPais.Text = dest.Pais.ToString();
-                comboBoxTipoDestino.Text = dest.TipoDestino.ToString();
-                dateTimePickerLlegada.Text = dest.FechaLlegada.ToString();
-                dateTimePickerSalida.Text = dest.FechaSalida.ToString();
-                textBoxPresupuestoProm.Text = dest.PresupuestoPromedio.ToString();
-                numericUpDownPuntuacion.Text = dest.Puntuacion.ToString();
-                checkBoxFavorito.Checked = dest.Favorito;
-            }
-        }
-
-        private void buttonAnterior_Click(object sender, EventArgs e)
-        {
-            if (cursor1.actual > 0) // Verificar antes de decrementar
-            {
-                cursor1.actual--;
-                MostrarRegistroActual();
-            }
-            else
-            {
-                MessageBox.Show("Fin de los registros.");
-            }
-        }
-
-        private void buttonSiguiente_Click(object sender, EventArgs e)
-        {
-            if (cursor1.actual < cursor1.totalRegistros - 1) // Verificar antes de incrementar
-            {
-                cursor1.actual++;
-                MostrarRegistroActual();
-            }
-            else
-            {
-                MessageBox.Show("Fin de los registros.");
-            }
-        }
-
-
-        public void ActualizarTotalRegistros()
-        {
-            todos_losRegistros = conexionDestinos.ObtenerTodosLosRegistros();
-
-            if (todos_losRegistros.Count > -1)
-            {
-                cursor1.totalRegistros = todos_losRegistros.Count;
-            }
-        }
     }
 }

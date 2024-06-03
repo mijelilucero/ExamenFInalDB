@@ -27,7 +27,7 @@ namespace ExamenFInalDB.Data
                     connection.Open();
                     return true;
                 }
-                catch (Exception ex)
+                catch
                 {
                     return false;
                 }
@@ -76,7 +76,7 @@ namespace ExamenFInalDB.Data
 
 
 
-        //READ: Seleccionar todos los registros usando List
+        //READ: Seleccionar todos los registros
         public List<Destino> ObtenerTodosLosRegistros()
         {
             List<Destino> destinos = new List<Destino>();

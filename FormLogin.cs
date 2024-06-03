@@ -29,7 +29,6 @@ namespace ExamenFInalDB
             }
             else
             {
-
                 MessageBox.Show("Usuario o contraseña incorrecto.");
                 textBoxUsuario.Text = "";
                 textBoxContrasena.Text = "";
